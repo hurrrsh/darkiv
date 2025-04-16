@@ -10,75 +10,16 @@ import subprocess
 import shutil
 from pathlib import Path
 
-def check_dependencies():
-    """Check if required command-line tools are installed"""
-    missing = []
-    try: subprocess.run(["pdftocairo", "-v"], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    except FileNotFoundError: missing.append("pdftocairo (poppler-utils)")
-    
-    try: subprocess.run(["convert", "-version"], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    except FileNotFoundError: missing.append("convert (ImageMagick)")
-    
-    try: subprocess.run(["img2pdf", "--version"], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    except FileNotFoundError: missing.append("img2pdf")
-
-    if missing:
-        print(f"ERROR: The following dependencies are missing: {', '.join(missing)}")
-        print("\nInstallation instructions for Pop!_OS / Ubuntu:")
-        print("sudo apt-get update")
-        
-        if "pdftocairo (poppler-utils)" in missing:
-            print("sudo apt-get install -y poppler-utils")
-        
-        if "convert (ImageMagick)" in missing:
-            print("sudo apt-get install -y imagemagick")
-        
-        if "img2pdf" in missing:
-            print("sudo apt-get install -y python3-pip")
-            print("pip3 install img2pdf")
-            
-        return False
-    return True
-
-def create_progress_bar(current, total, width=50):
-    """ASCII progress bar."""
-    progress = int(width * current / total)
-    bar = "█" * progress + "░" * (width - progress)
-    percentage = int(100 * current / total)
-    return f"\r|{bar}| {percentage}% ({current}/{total} pages)"
-
-def get_page_count(pdf_path):
-    """Get the number of pages in the PDF file."""
-    try:
-        result = subprocess.run(
-            ["pdfinfo", pdf_path], 
-            capture_output=True, 
-            text=True
-        )
-        for line in result.stdout.split('\n'):
-            if line.startswith('Pages:'):
-                return int(line.split(':')[1].strip())
-    except Exception:
-        return None
-    
-    return None
-
 def convert_to_dark_mode(input_path, output_path=None):
     """convert a PDF to dark mode using Poppler and ImageMagick."""
     if output_path is None:
         input_path = Path(input_path)
         output_path = input_path.with_stem(f"{input_path.stem}_darkiv")
     
-    print(f"Converting {input_path} to dark mode...")
-    
-    page_count = get_page_count(input_path)
-    if page_count is None:
-        page_count = 0  # Unknown number of pages
-    
     with tempfile.TemporaryDirectory() as temp_dir:
         temp_dir_path = Path(temp_dir)
         
-        print("Extracting PDF pages as images...")
+        print("extracting PDF pages as images...")
         subprocess.run([
             "pdftocairo", 
             "-png",        # Output format
@@ -110,12 +51,8 @@ def convert_to_dark_mode(input_path, output_path=None):
             ])
             
             dark_mode_images.append(str(dark_img_file))
-            
-            if page_count > 0:
-                sys.stdout.write(create_progress_bar(i + 1, len(image_files)))
-                sys.stdout.flush()
         
-        print("\ncombining inverted pages into PDF...")
+        print("combining inverted pages into PDF...")
         
         subprocess.run([
             "img2pdf",
@@ -127,6 +64,15 @@ def convert_to_dark_mode(input_path, output_path=None):
         return True
 
 def main():
+    print(r"""
+        .___             __   .__       
+      __| _/____ _______|  | _|__|__  __
+     / __ |\__  \\_  __ \  |/ /  \  \/ /
+    / /_/ | / __ \|  | \/    <|  |\   / 
+    \____ |(____  /__|  |__|_ \__| \_/  
+         \/     \/           \/         
+    """)
+    
     if len(sys.argv) < 2:
         print("usage: python pdf.py input.pdf [output.pdf]")
         sys.exit(1)
@@ -135,9 +81,6 @@ def main():
     
     if not os.path.exists(input_path):
         print(f"Error: The file '{input_path}' does not exist.")
-        sys.exit(1)
-    
-    if not check_dependencies():
         sys.exit(1)
     
     output_path = sys.argv[2] if len(sys.argv) > 2 else None
