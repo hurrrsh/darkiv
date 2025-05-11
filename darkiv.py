@@ -1,13 +1,14 @@
 #!/usr/bin/env python3
 """
-Usage: python pdf.py input.pdf [output.pdf]
+Usage: python darkiv.py input.pdf [output.pdf]
 """
+# requirements: sudo apt-get install imagemagick poppler-utils
+# pip install img2pdf
 
 import sys
 import os
 import tempfile
 import subprocess
-import shutil
 from pathlib import Path
 
 def convert_to_dark_mode(input_path, output_path=None):
@@ -74,7 +75,7 @@ def main():
     """)
     
     if len(sys.argv) < 2:
-        print("usage: python pdf.py input.pdf [output.pdf]")
+        print("usage: python darkiv.py input.pdf [output.pdf]")
         sys.exit(1)
     
     input_path = sys.argv[1]
