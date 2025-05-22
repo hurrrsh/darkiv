@@ -4,6 +4,7 @@ Usage: python darkiv.py input.pdf [output.pdf]
 """
 # requirements: sudo apt-get install imagemagick poppler-utils
 # pip install img2pdf
+# works pretty quick with arxiv papers(usuall 10-15 pages), but on books pdfs takes time(around 5-10 mins for 300 pgs, but works well)
 
 import sys
 import os
